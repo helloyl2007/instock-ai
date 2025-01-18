@@ -1,11 +1,16 @@
 **InStock-AI AI问股**
 ## 说明：
 AI问股，是基于InStock项目（https://github.com/myhhub/stock），增加了AI分析能力。
-基本逻辑是通过LLM识别用户提问的问题，提取股票名称或代码，并通过API查询出该支股票的最后交易日数据，返回的JSON格式数据由LLM组织成自然语言输出。
+
+基本逻辑是通过LLM识别用户提问的问题，提取股票名称或代码，并通过API查询出该支股票的最后交易日数据，返回的JSON格式数据
+由LLM组织成自然语言输出。
+
 保留了原InStock的web界面。
+
 把我关注的股票独立出来了。
 
 代码写得烂别骂我，因为90%都是AI写的，也别骂AI，毕竟也没付它工钱。hhh
+
 所以，如果你看到很多奇奇怪怪的注释，那都是合理的存在。
 
 另外：
@@ -16,6 +21,7 @@ AI问股，是基于InStock项目（https://github.com/myhhub/stock），增加�
 
 ## LLM接入：
 1.先安装openai库，只要是支持openai标准的api就行，不一定要chatgpt系列的大模型。
+
 2.在chat_handler.py中，修改第10、11行，填入你的api key和url。在第74、109、143行，修改为你的模型名称。
 
 
