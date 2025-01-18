@@ -19,14 +19,15 @@ AI问股，是基于InStock项目（https://github.com/myhhub/stock），增加�
 再另外:
 我这不是InStock的最新版本，要使用最新版本的，请自行从原项目更新。
 
-https://youtu.be/ZHoPKw7EjtM
-
 ## LLM接入：
 1.先安装openai库，只要是支持openai标准的api就行，不一定要chatgpt系列的大模型。
 
 2.在chat_handler.py中，修改第10、11行，填入你的api key和url。在第74、109、143行，修改为你的模型名称。
 
-<iframe width="560" height="315" src="https://youtu.be/ZHoPKw7EjtM" frameborder="0" allowfullscreen></iframe>
+![](img/0001.png)
+![](img/0002.png)
+
+视频演示看这里：https://youtu.be/ZHoPKw7EjtM
 
 ## 以下是InStock项目的详细介绍和安装方法
 
