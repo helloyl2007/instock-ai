@@ -1,0 +1,137 @@
+{% extends "layout/default.html" %}
+
+{% block main_content %}
+<link rel="stylesheet" href="/static/css/bootstrap-datepicker3.min.css" />
+<script src="/static/js/FileSaver.js" type="text/javascript"></script>
+<script src="/static/js/bootstrap-datepicker.min.js"></script>
+<script src="/static/js/bootstrap-datepicker.zh-CN.min.js"></script>
+<!-- 引入handsontable 文件 -->
+<link rel="stylesheet" href="/static/css/handsontable.full.min.css">
+<script src="/static/js/handsontable.full.min.js"></script>
+<script src="/static/js/handsontable.zh-CN.js"></script>
+<script src="/static/js/handsontable.exportFile.js"></script>
+<div style="height: 100%;overflow: hidden;">
+    <div class="table-header" style="width:100%;height:35px;">
+        <div style="display:inline-block;float:left;height:100%;">
+            <div style="display:inline-block;float:left;text-overflow:ellipsis;white-space:nowrap;">
+                我的关注
+            </div>
+        </div>
+        <div style="display:inline-block;float:right;height:100%;">
+            <input type="button" id="resetFilter" value="重置筛选" style="background-color:#307ECC;height:100%;">
+            <input type="button" id="saveExcel" value="保存Excel" style="background-color:#307ECC;height:100%;">
+        </div>
+    </div>
+    <div id="loading" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:20px;color:#307ECC;">数据加载中，请稍候...</div>
+    <div id="attention-data" style="width:100%;height:calc( 100% - 55px );overflow:auto;"></div>
+</div>
+
+<script type="text/javascript">
+    const colInfos = [
+        { caption: '代码', value: 'code' },
+        { caption: '名称', value: 'name' },
+        { caption: '最新价', value: 'new_price' },
+        { caption: '涨跌幅', value: 'change_rate' },
+        { caption: '涨跌额', value: 'ups_downs' },
+        { caption: '成交量', value: 'volume' },
+        { caption: '成交额', value: 'deal_amount' },
+        { caption: '振幅', value: 'amplitude' },
+        { caption: '量比', value: 'volume_ratio' },
+        { caption: '换手率', value: 'turnoverrate' },
+        { caption: '今开', value: 'open_price' },
+        { caption: '最高', value: 'high_price' },
+        { caption: '最低', value: 'low_price' },
+        { caption: '昨收', value: 'pre_close_price' },
+        { caption: '市盈率动', value: 'dtsyl' },
+        { caption: '市盈率TTM', value: 'pe9' },
+        { caption: '市盈率静', value: 'pe' },
+        { caption: '市净率', value: 'pbnewmrq' },
+        { caption: '每股收益', value: 'basic_eps' },
+        { caption: '每股净资产', value: 'bvps' },
+        { caption: '每股公积金', value: 'per_capital_reserve' },
+        { caption: '每股未分配利润', value: 'per_unassign_profit' },
+        { caption: '加权净资产收益率', value: 'roe_weight' },
+        { caption: '毛利率', value: 'sale_gpr' },
+        { caption: '资产负债率', value: 'debt_asset_ratio' },
+        { caption: '营业收入', value: 'total_operate_income' },
+        { caption: '营业收入同比增长', value: 'toi_yoy_ratio' },
+        { caption: '归属净利润', value: 'parent_netprofit' },
+        { caption: '归属净利润同比增长', value: 'netprofit_yoy_ratio' },
+        // { caption: '报告期', value: 'report_date' },
+        { caption: '总股本', value: 'total_shares' },
+        { caption: '已流通股份', value: 'free_shares' },
+        { caption: '总市值', value: 'total_market_cap' },
+        { caption: '流通市值', value: 'free_cap' },
+        { caption: '所处行业', value: 'industry' },
+        // { caption: '上市时间', value: 'listing_date' }
+    ];
+
+    $(document).ready(function () {
+        const container = document.getElementById('attention-data');
+        const hot = new Handsontable(container, {
+            data: [],
+            colHeaders: colInfos.map(col => col.caption),
+            columns: colInfos.map(col => ({ data: col.value, width: col.caption.length * 13 + 36 })), // 自动适应列名称的长度
+            rowHeaders: true,
+            filters: true,
+            dropdownMenu: true, // 开启条件筛选功能
+            licenseKey: 'non-commercial-and-evaluation',
+            // hiddenColumns: {
+            //     columns: [0], // 隐藏第一列
+            //     indicators: true
+            // },
+            language: 'zh-CN', // 设置为中文
+            cells: function (row, col) {
+                const cellProperties = {};
+                if (col === colInfos.findIndex(col => col.value === 'code')) {
+                    cellProperties.renderer = function (instance, td, row, col, prop, value, cellProperties) {
+                        Handsontable.renderers.TextRenderer.apply(this, arguments);
+                        const date = new Date().toISOString().split('T')[0];
+                        const name = hot.getDataAtCell(row, colInfos.findIndex(col => col.value === 'name'));
+                        td.innerHTML = `<a href="/instock/data/indicators?code=${value}&date=${date}&name=${name}" target="_blank">${value}</a>`;
+                    };
+                }
+                return cellProperties;
+            }
+        });
+
+        initSpread(hot);
+
+        // 重置筛选按钮功能
+        document.getElementById('resetFilter').addEventListener('click', function() {
+            hot.getPlugin('filters').clearConditions();
+            hot.getPlugin('filters').filter();
+        });
+
+        // 保存Excel按钮功能
+        document.getElementById('saveExcel').addEventListener('click', function() {
+            const exportPlugin = hot.getPlugin('exportFile');
+            exportPlugin.downloadFile('xlsx', {
+                filename: `my_attention`,
+                fileExtension: 'xlsx',
+                mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                exportHiddenColumns: true, // 导出隐藏列
+                exportHiddenRows: true, // 导出隐藏行
+                columnHeaders: true, // 导出列标题
+                rowHeaders: true // 导出行标题
+            });
+        });
+    });
+
+    function initSpread(hot) {
+        document.getElementById('loading').style.display = 'block'; // 显示loading
+
+        fetch(`/instock/my_attention?format=json`)
+            .then(response => response.json())
+            .then(data => {
+                hot.loadData(data.data);
+                hot.updateSettings({
+                    colHeaders: colInfos.map(col => col.caption),
+                    columns: colInfos.map(col => ({ data: col.value, width: col.caption.length * 13 + 36 })) // 自动适应列名称的长度
+                });
+                hot.render(); // 确保数据加载后重新渲染表格
+                document.getElementById('loading').style.display = 'none'; // 隐藏loading
+            });
+    }
+</script>
+{% end %}

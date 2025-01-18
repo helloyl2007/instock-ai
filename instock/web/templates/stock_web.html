@@ -1,0 +1,181 @@
+{% extends "layout/default.html" %}
+
+{% block main_content %}
+<link rel="stylesheet" href="/static/css/bootstrap-datepicker3.min.css" />
+<script src="/static/js/FileSaver.js" type="text/javascript"></script>
+<script src="/static/js/bootstrap-datepicker.min.js"></script>
+<script src="/static/js/bootstrap-datepicker.zh-CN.min.js"></script>
+<!-- 引入handsontable 文件 -->
+<link rel="stylesheet" href="/static/css/handsontable.full.min.css">
+<script src="/static/js/handsontable.full.min.js"></script>
+<script src="/static/js/handsontable.zh-CN.js"></script>
+<script src="/static/js/handsontable.exportFile.js"></script>
+<div style="height: 100%;overflow: hidden;">
+        <div class="table-header" style="width:100%;height:35px;">
+            <div style="display:inline-block;float:left;height:100%;">
+                <div style="display:inline-block;float:left;text-overflow:ellipsis;white-space:nowrap;">
+                    {{ web_module_data.name }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;日期：
+                </div>
+                <div style="display:inline-block;float:right;">
+                    <input type="hidden" id="dateid_old">
+                    <input type="text" value="{{ date_now }}" id="dateid" class="input-group-sm form-control date-picker">
+                </div>
+            </div>
+            <div style="display:inline-block;float:right;height:100%;">
+                <input type="button" id="resetFilter" value="重置筛选" style="background-color:#307ECC;height:100%;">
+                <input type="button" id="saveExcel" value="保存Excel" style="background-color:#307ECC;height:100%;">
+            </div>
+        </div>
+        <div id="loading" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:20px;color:#307ECC;">数据加载中，请稍候...</div>
+        <div id="instock-data" style="width:100%;height:calc( 100% - 55px );overflow:auto;"></div>
+</div>
+
+<script type="text/javascript">
+    const nameParam = $.getUrlVar('table_name');
+    let dateParam = "{{ date_now }}";
+    const colInfos = {% raw web_module_data.column_names %}; // 使用变量colInfos
+    let myView;
+
+    $(document).ready(function () {
+        const container = document.getElementById('instock-data');
+        const hot = new Handsontable(container, {
+            data: [],
+            colHeaders: colInfos.map(col => col.caption),
+            columns: colInfos.map(col => ({
+                data: col.value,
+                width: col.caption.length * 13 + 36,
+                // 根据数据类型设置列属性
+                ...(col.value === 'date' && {
+                    type: 'text',
+                    renderer: function(instance, td, row, col, prop, value) {
+                        td.innerHTML = value;
+                        return td;
+                    }
+                }),
+                ...(col.value.includes('price') && {
+                    type: 'numeric',
+                    numericFormat: {
+                        pattern: '0.00'
+                    }
+                }),
+                ...(col.value.includes('rate') && {
+                    type: 'numeric',
+                    numericFormat: {
+                        pattern: '0.00%'
+                    }
+                })
+            })),
+            rowHeaders: true,
+            filters: true,
+            dropdownMenu: true, // 开启条件筛选功能
+            licenseKey: 'non-commercial-and-evaluation',
+            hiddenColumns: {
+                columns: [0], // 隐藏第一列
+                indicators: true
+            },
+            language: 'zh-CN', // 设置为中文
+            columnSorting: true,  // 添加排序功能
+            manualColumnResize: true,  // 允许手动调整列宽
+            stretchH: 'all'  // 表格宽度自适应
+        });
+
+        // 代码链接渲染器
+        if (colInfos.findIndex(col => col.value === 'code') !== -1) {
+            hot.updateSettings({
+                cells: function(row, col) {
+                    const cellProperties = {};
+                    const codeIndex = colInfos.findIndex(col => col.value === 'code');
+                    if (col === codeIndex) {
+                        cellProperties.renderer = function(instance, td, row, col, prop, value) {
+                            const dateValue = instance.getDataAtRowProp(row, 'date');
+                            const nameValue = instance.getDataAtRowProp(row, 'name');
+                            td.innerHTML = `<a href="/instock/data/indicators?code=${value}&date=${dateValue}&name=${nameValue}" target="_blank">${value}</a>`;
+                            return td;
+                        };
+                    }
+                    return cellProperties;
+                }
+            });
+        }
+
+        initSpread(hot);
+
+        $( ".date-picker" ).datepicker({
+            language: 'zh-CN', //设置语言
+            format:"yyyy-mm-dd",
+            showOtherMonths: true,
+            selectOtherMonths: false,
+            autoclose: true,
+            todayHighlight: true,
+            onSelect: function(selected,evnt) {
+                 console.log(selected);
+            }
+        }).on('changeDate', function(ev){
+           initSpread(hot);
+        });
+
+        // 重置筛选按钮功能
+        document.getElementById('resetFilter').addEventListener('click', function() {
+            hot.getPlugin('filters').clearConditions();
+            hot.getPlugin('filters').filter();
+        });
+
+        // 保存Excel按钮功能
+        document.getElementById('saveExcel').addEventListener('click', function() {
+            const exportPlugin = hot.getPlugin('exportFile');
+            exportPlugin.downloadFile('xlsx', {
+                filename: `${nameParam}_${dateParam}`,
+                fileExtension: 'xlsx',
+                mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                exportHiddenColumns: true, // 导出隐藏列
+                exportHiddenRows: true, // 导出隐藏行
+                columnHeaders: true, // 导出列标题
+                rowHeaders: true // 导出行标题
+            });
+        });
+    });
+
+    function initSpread(hot) {
+        document.getElementById('loading').style.display = 'block'; // 显示loading
+        const dateParam_old = document.getElementById("dateid_old").value
+        dateParam = document.getElementById('dateid').value;
+        if (dateParam_old === dateParam) {
+            document.getElementById('loading').style.display = 'none'; // 隐藏loading
+            return;
+        }
+        document.getElementById("dateid_old").value = dateParam
+
+        fetch(`/instock/api_data?name=${nameParam}&date=${dateParam}`)
+            .then(response => response.json())
+            .then(data => {
+                // 确保数据格式正确
+                const processedData = data.map(item => {
+                    // 创建新对象，确保数据映射到正确的列
+                    const row = {};
+                    colInfos.forEach(col => {
+                        row[col.value] = item[col.value];
+                    });
+                    return row;
+                });
+                
+                hot.loadData(processedData);
+                hot.render();
+                document.getElementById('loading').style.display = 'none';
+            })
+            .catch(error => {
+                console.error('Data loading error:', error);
+                document.getElementById('loading').style.display = 'none';
+            });
+    }
+
+    Date.prototype.format = function (format) {
+      let o = {
+        "y": "" + this.getFullYear(),
+        "M": "" + (this.getMonth() + 1),  //month
+        "d": "" + this.getDate(),         //day
+        "h": "" + this.getHours(),        //hour
+      }
+      return Object.keys(o).reduce((pre, k)=> (new RegExp("(" + k + "+)").test(pre)) ? (pre.replace(RegExp.$1, RegExp.$1.length === 1 ? o[k] : o[k].padStart(2, "0"))) : pre , format);
+    }
+</script>
+{% end %}

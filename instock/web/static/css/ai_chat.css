@@ -1,0 +1,569 @@
+.chat-container {
+    max-width: 1000px;
+    margin: 10px 0 20px 20px;
+    height: calc(100vh - 30px);
+}
+
+.chat-wrapper {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.chat-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid #eee;
+    background: #fff;
+}
+
+.chat-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 18px;
+    color: #333;
+}
+
+.chat-title i {
+    color: #2196F3;
+    font-size: 20px;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    background: #f8f9fa;
+    min-height: 300px;
+}
+
+.message-group {
+    margin-bottom: 24px;
+}
+
+.message {
+    display: flex;
+    align-items: flex-start;
+    max-width: 85%;
+    margin-bottom: 16px;
+}
+
+.message.ai {
+    margin-right: auto;
+}
+
+.message.user {
+    margin-left: auto;
+    flex-direction: row-reverse;
+}
+
+.message-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    margin: 0 12px;
+}
+
+.message.ai .message-avatar {
+    background: #2196F3;
+    color: white;
+}
+
+.message.user .message-avatar {
+    background: #c6390e;
+    color: white;
+}
+
+.message-content {
+    padding: 12px 16px;
+    border-radius: 12px;
+    position: relative;
+    font-size: 16px;  /* 墛大字号 */
+    line-height: 1.8;  /* 增加行距 */
+}
+
+.message.ai .message-content {
+    background: white;
+    color: #333;
+    border: 1px solid #e0e0e0;
+    border-top-left-radius: 4px;
+}
+
+.message.user .message-content {
+    background: #2196F3;
+    color: white;
+    border-top-right-radius: 4px;
+}
+
+.chat-input {
+    padding: 16px;
+    background: #fff;
+    border-top: 1px solid #eee;
+}
+
+.input-wrapper {
+    display: flex;
+    gap: 12px;
+    background: #f8f9fa;
+    border-radius: 24px;
+    padding: 8px 16px;
+    border: 1px solid #e0e0e0;
+}
+
+#messageInput {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 15px;
+    padding: 8px 0;
+}
+
+#sendButton {
+    background: none;
+    border: none;
+    color: #2196F3;
+    padding: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+#sendButton:hover {
+    opacity: 1;
+}
+
+#sendButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Markdown 内容样式 */
+.message-content pre {
+    background: #f6f8fa;
+    border-radius: 6px;
+    padding: 12px;
+    margin: 8px 0;
+    overflow-x: auto;
+}
+
+.message-content code {
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
+.message-content p {
+    margin: 0 0 8px 0;
+}
+
+.message-content ul, .message-content ol {
+    margin: 8px 0;
+    padding-left: 20px;
+}
+
+/* 自定义滚动条 */
+.history-summary::-webkit-scrollbar {
+    width: 4px;
+}
+
+.history-summary::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.history-summary::-webkit-scrollbar-thumb {
+    background: #ddd;
+    border-radius: 2px;
+}
+
+/* 添加新的分隔符样式 */
+.chat-divider {
+    text-align: center;
+    color: #666; /* 加深颜色 */
+    font-size: 13px; /* 墛大字号 */
+    margin: 16px 0 8px; /* 墛加上下间距 */
+    position: relative;
+    font-weight: 500; /* 加粗一点 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+/* 添加hover效果 */
+.chat-divider.clear-history:hover {
+    color: #333;
+}
+
+.chat-divider::before,
+.chat-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 35%;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.chat-divider::before {
+    left: 0;
+}
+
+.chat-divider::after {
+    right: 0;
+}
+
+.history-clear {
+    text-align: right;
+    padding: 8px;
+}
+
+.clear-history {
+    color: #666;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 4px 8px;
+}
+
+.clear-history:hover {
+    color: #333;
+    text-decoration: underline;
+}
+
+/* 更新历史对话样式 */
+.history-section {
+    padding: 8px;
+    margin-bottom: 16px;
+    background: #fff;
+    border-radius: 4px;
+    width: 100%;
+}
+
+.history-message {
+    display: flex;
+    align-items: flex-start;
+    padding: 4px 8px;
+    margin-bottom: 2px;  /* 减小间距 */
+    font-size: 12px;
+    line-height: 1.3;
+    cursor: pointer;
+    position: relative;
+    border-radius: 2px;
+    transition: background-color 0.2s;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* 用户消息样式 */
+.history-message.user {
+    background: #ebf5ff;
+}
+
+/* AI消息样式 */
+.history-message.ai {
+    background: #f0f0f0;
+}
+
+/* 更新历史对话角色样式 */
+.history-role {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 8px;
+    font-size: 11px;
+    color: #fff;
+}
+
+/* 角色样式 */
+.history-message.user .history-role {
+    background: #c6390e;
+}
+
+.history-message.ai .history-role {
+    background: #2196F3;
+}
+
+.history-text {
+    flex: 1;
+    color: #333;
+    padding-right: 24px; /* 为展开按钮留出空间 */
+    min-width: 0; /* 关键修改：允许文本区域缩小 */
+    width: 100%;
+    overflow: hidden; /* 添加此行 */
+}
+
+.text-preview {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block; /* 确保占满可用空间 */
+    width: 100%;
+}
+
+.text-full {
+    white-space: pre-wrap;
+    word-break: break-word;
+    width: 100%;
+    display: none; /* 添加此行 */
+}
+
+/* 优化展开按钮 */
+.expand-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    font-size: 11px;
+    padding: 2px 4px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 2px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 1; /* 确保按钮在文本上层 */
+}
+
+.history-message:hover .expand-btn {
+    opacity: 1;
+}
+
+.history-message:hover {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+/* 移除历史对话相关的旧样式 */
+.message-group.compact,
+.message-avatar.mini,
+.history-summary,
+.history-item {
+    /* 删除这些类 */
+}
+
+/* 历史对话压缩样式 */
+.history-section {
+    opacity: 0.85;
+}
+
+.message-group.compact {
+    margin-bottom: 8px;
+}
+
+.message-group.compact .message {
+    max-width: 95%;
+}
+
+.message-group.compact .message-content {
+    padding: 8px 12px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.message-group.compact .message-avatar {
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+    margin: 0 8px;
+}
+
+.message-content.truncated {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 删除旧的头像相关样式 */
+.avatar-img {
+    display: none;
+}
+
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+    .chat-container {
+        margin: 0;
+        height: 100vh;
+        height: -webkit-fill-available; /* 适配 iOS Safari */
+        max-width: 100%;
+        position: fixed; /* 固定定位 */
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+
+    .chat-wrapper {
+        border-radius: 0;
+        height: 100%;
+        position: relative;
+    }
+
+    .chat-messages {
+        /* 确保内容区域可滚动 */
+        position: absolute;
+        top: 52px; /* chat-header 的高度 */
+        bottom: 65px; /* chat-input 的高度 */
+        left: 0;
+        right: 0;
+        overflow-y: auto;
+        padding: 12px;
+        -webkit-overflow-scrolling: touch; /* 添加平滑滚动 */
+        transition: bottom 0.3s ease; /* 添加过渡效果 */
+    }
+
+    .chat-input {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #fff;
+        padding: 12px;
+        /* 确保输入框始终在键盘之上 */
+        z-index: 100;
+        transition: transform 0.3s ease; /* 添加过渡效果 */
+    }
+
+    .message {
+        max-width: 95%;
+    }
+
+    .message-content {
+        padding: 8px 12px;
+        font-size: 16px;
+        line-height: 1.8;  /* 保持一致的行距 */
+    }
+
+    .input-wrapper {
+        padding: 6px 12px;
+    }
+
+    #messageInput {
+        font-size: 16px;  /* 墛大输入框字号 */
+        padding: 8px 0;
+    }
+
+    /* 历史消息在移动端的样式 */
+    .history-section {
+        padding: 4px;
+    }
+
+    .history-message {
+        padding: 3px 6px;
+    }
+
+    .history-text {
+        font-size: 13px;  /* 墛大历史消息字号 */
+    }
+
+    .expand-btn {
+        font-size: 10px;
+        padding: 1px 3px;
+    }
+
+    /* 代码块在移动端的样式 */
+    .message-content pre {
+        padding: 8px;
+        font-size: 12px;
+        max-width: 100%;
+        overflow-x: auto;
+    }
+
+    /* 减小头像大小 */
+    .message-avatar {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+        margin: 0 8px;
+    }
+
+    .chat-divider {
+        font-size: 12px;
+        margin: 12px 0 6px;
+    }
+
+    .chat-header {
+        display: flex;
+        justify-content: center;  /* 使标题居中 */
+        padding: 12px 16px;
+    }
+
+    .chat-title {
+        text-align: center;  /* 文字居中 */
+    }
+}
+
+/* 当输入框获得焦点时的样式 */
+@media screen and (max-width: 768px) {
+    .chat-container.input-focused .chat-messages {
+        bottom: 70px; /* 稍微增加底部空间 */
+    }
+}
+
+/* 当键盘弹出时的样式调整 */
+@media screen and (max-width: 768px) and (max-height: 400px) {
+    .chat-container {
+        position: absolute; /* 改为绝对定位 */
+    }
+    
+    .chat-messages {
+        bottom: 60px; /* 稍微减小底部空间 */
+    }
+}
+
+/* 适配超小屏幕 */
+@media screen and (max-width: 480px) {
+    .chat-header {
+        padding: 12px 16px;
+    }
+
+    .chat-title {
+        font-size: 16px;
+    }
+
+    .chat-input {
+        padding: 12px;
+    }
+
+    .message {
+        max-width: 98%;
+    }
+
+    .message-content {
+        font-size: 15px;  /* 调整超小屏幕的字号 */
+    }
+
+    /* 优化小屏幕下的滚动体验 */
+    .chat-messages {
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* 横屏模式优化 */
+@media screen and (max-height: 480px) and (orientation: landscape) {
+    .chat-container {
+        height: calc(100vh - 10px);
+    }
+
+    .chat-header {
+        padding: 8px 16px;
+    }
+
+    .chat-messages {
+        padding: 8px;
+    }
+
+    .message-group {
+        margin-bottom: 12px;
+    }
+}

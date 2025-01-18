@@ -1,0 +1,57 @@
+{% extends "layout/indicators.html" %}
+{% block main_content %}
+<script type="text/javascript" src="/static/js/bokeh-3.6.2.min.js"></script>
+<script type="text/javascript" src="/static/js/bokeh-widgets-3.6.2.min.js"></script>
+<script type="text/javascript">
+    Bokeh.set_log_level("error");
+
+    $(document).ready(function () {
+        const user = "{{ current_user }}";
+        const code = "{{ code }}";
+        updateAttentionButton(user, code);
+    });
+
+    function updateAttentionButton(user, code) {
+        $.ajax({
+            type: "get",
+            url: "/instock/control/attention",
+            data: { code: code, action: "check", user: user },
+            dateType: "json",
+            success: function (json) {
+                const button = document.getElementById("attentionButton");
+                if (json.isAttention) {
+                    button.value = "1";
+                    button.innerText = "取关";
+                } else {
+                    button.value = "0";
+                    button.innerText = "关注";
+                }
+            }
+        });
+    }
+
+    function attention(code, obj) {
+        $.ajax({
+            type: "get",
+            url: "/instock/control/attention",
+            data: { code: code, action: "toggle", otype: obj.value },
+            dateType: "json",
+            success: function (json) {
+                const user = "{{ current_user }}";
+                updateAttentionButton(user, code);
+            }
+        });
+    }
+</script>
+{% for element in comp_list %}
+<div>
+    <div style="padding-top:8px; padding-left:560px; position: absolute; z-index:99">
+        <button id="attentionButton" value="{% if isAttention %}1{% else %}0{% end %}" onclick="attention('{{ code }}', this)">
+        {% if isAttention %}取关{% else %}关注{% end %}
+        </button>
+    </div>
+    {% raw element["div"] %}
+    {% raw element["script"] %}
+</div>
+{% end %}
+{% end %}

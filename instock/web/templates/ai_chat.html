@@ -1,0 +1,101 @@
+{% extends "layout/default.html" %}
+
+{% block main_content %}
+<div class="chat-container">
+    <div class="chat-wrapper">
+        <div class="chat-header">
+            <div class="chat-title">
+                <i class="fa fa-robot"></i>
+                <span>AI问股</span>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <!-- 历史对话 -->
+            {% if chat_history %}
+            <div class="history-section">
+                {% for message in chat_history[-6:] %}  <!-- 最近3轮对话(6条消息) -->
+                <div class="history-message {% if message['role'] == 'user' %}user{% else %}ai{% end %}" onclick="toggleMessage(this)">
+                    <span class="history-role">{% if message['role'] == 'user' %}我{% else %}AI{% end %}</span>
+                    <span class="history-text">
+                        <span class="text-preview">{{ message['content'][:75] + '...' if len(message['content']) > 75 else message['content'] }}</span>
+                        <span class="text-full" style="display:none">{{ message['content'] }}</span>
+                    </span>
+                    {% if len(message['content']) > 75 %}
+                    <span class="expand-btn">展开</span>
+                    {% end %}
+                </div>
+                {% end %}
+                <div class="chat-divider clear-history" style="cursor:pointer;">开始新对话</div>                
+            </div>
+            <!-- 有历史记录时显示不同的欢迎语 -->
+            <div class="message-group">
+                <div class="message ai">
+                    <div class="message-avatar">AI</div>
+                    <div class="message-content">欢迎回来，您还可以继续提问</div>
+                </div>
+            </div>
+            {% else %}
+            <!-- 仅在没有历史对话时显示初始欢迎语 -->
+            <div class="message-group">
+                <div class="message ai">
+                    <div class="message-avatar">AI</div>
+                    <div class="message-content">您好！我是AI问股助手，有什么关于股票投资方面的问题随时可以问我。</div>
+                </div>
+            </div>
+            {% end %}
+        </div>
+
+        <div class="chat-input">
+            <div class="input-wrapper">
+                <input type="text" id="messageInput" placeholder="请输入您的问题...">
+                <!-- 移除 autofocus 属性 -->
+                <button id="sendButton">
+                    <i class="fa fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<link rel="stylesheet" href="/static/css/ai_chat.css">
+<script src="/static/js/marked.min.js"></script>
+<script src="/static/js/ai_chat.js"></script>
+<script>
+function toggleMessage(element) {
+    const preview = element.querySelector('.text-preview');
+    const full = element.querySelector('.text-full');
+    const btn = element.querySelector('.expand-btn');
+    
+    if (preview && full && btn) {
+        if (preview.style.display !== 'none') {
+            preview.style.display = 'none';
+            full.style.display = 'inline';
+            btn.textContent = '收起';
+        } else {
+            preview.style.display = 'inline';
+            full.style.display = 'none';
+            btn.textContent = '展开';
+        }
+    }
+}
+
+document.querySelector('.clear-history')?.addEventListener('click', async function() {
+    try {
+        const response = await fetch('/instock/ai_chat/clear', {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('清除失败，请稍后重试');
+        }
+    } catch (error) {
+        alert('清除失败，请稍后重试');
+    }
+});
+</script>
+{% end %}
+{% end %}
